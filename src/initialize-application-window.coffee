@@ -1,5 +1,11 @@
+AtomEnvironment = require './atom-environment'
+ApplicationDelegate = require './application-delegate'
+CompileCache = require './compile-cache'
+Clipboard = require './clipboard'
+TextEditor = require './text-editor'
+
 # Like sands through the hourglass, so are the days of our lives.
-module.exports = ({blobStore}) ->
+module.exports = ->
   {updateProcessEnv} = require('./update-process-env')
   path = require 'path'
   require './window'
@@ -16,23 +22,20 @@ module.exports = ({blobStore}) ->
   # Make React faster
   process.env.NODE_ENV ?= 'production' unless devMode
 
-  AtomEnvironment = require './atom-environment'
-  ApplicationDelegate = require './application-delegate'
-  Clipboard = require './clipboard'
-  TextEditor = require './text-editor'
+  CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
   clipboard = new Clipboard
   TextEditor.setClipboard(clipboard)
 
   window.atom = new AtomEnvironment({
-    window, document, clipboard, blobStore,
+    window, document, clipboard,
     applicationDelegate: new ApplicationDelegate,
     configDirPath: process.env.ATOM_HOME,
     enablePersistence: true,
     env: process.env
   })
 
-  atom.startEditorWindow().then ->
+  window.atom.startEditorWindow().then ->
     # Workaround for focus getting cleared upon window creation
     windowFocused = ->
       window.removeEventListener('focus', windowFocused)
